@@ -82,6 +82,21 @@ async function run() {
       res.send(result);
     });
 
+    app.get(
+      "/categories-add-product",
+      verifyJWT,
+      verifySeller,
+      async (req, res) => {
+        const query = {};
+        const option = { name: 1 };
+        const result = await categoriesCollections
+          .find(query)
+          .project(option)
+          .toArray();
+        res.send(result);
+      }
+    );
+
     app.post("/categories", verifyJWT, verifyAdmin, async (req, res) => {
       const category = req.body;
       const result = await categoriesCollections.insertOne(category);
