@@ -78,6 +78,24 @@ async function run() {
       res.send({ isSeller: user?.role === "seller" });
     });
 
+    app.get("/users", verifyJWT, verifyAdmin, async (req, res) => {
+      const query = {};
+      const users = await usersCollections.find(query).toArray();
+      res.send(users);
+    });
+
+    app.get("/users/sellers", verifyJWT, verifyAdmin, async (req, res) => {
+      const query = { role: "seller" };
+      const sellers = await usersCollections.find(query).toArray();
+      res.send(sellers);
+    });
+
+    app.get("/users/buyers", verifyJWT, verifyAdmin, async (req, res) => {
+      const query = { role: "user" };
+      const users = await usersCollections.find(query).toArray();
+      res.send(users);
+    });
+
     app.post("/users", async (req, res) => {
       const user = req.body;
       const result = await usersCollections.insertOne(user);
