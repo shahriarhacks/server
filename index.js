@@ -37,6 +37,8 @@ function verifyJWT(req, res, next) {
 
 const usersCollections = client.db("doyaShop").collection("users");
 const categoriesCollections = client.db("doyaShop").collection("categories");
+const phonesCollections = client.db("doyaShop").collection("phones");
+
 async function run() {
   try {
     //Verify Admin
@@ -100,6 +102,12 @@ async function run() {
     app.post("/categories", verifyJWT, verifyAdmin, async (req, res) => {
       const category = req.body;
       const result = await categoriesCollections.insertOne(category);
+      res.send(result);
+    });
+
+    app.post("/phones", verifyJWT, verifySeller, async (req, res) => {
+      const phone = req.body;
+      const result = await phonesCollections.insertOne(phone);
       res.send(result);
     });
 
