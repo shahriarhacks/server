@@ -96,12 +96,41 @@ async function run() {
       res.send(users);
     });
 
+    app.get("/users/for-seller", verifyJWT, verifySeller, async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const user = await usersCollections.findOne(query);
+      res.send(user);
+    });
+
+    app.put("/users/admin/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          status: "verified",
+        },
+      };
+      const result = await usersCollections.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
+      res.send(result);
+    });
+
     app.post("/users", async (req, res) => {
       const user = req.body;
       const result = await usersCollections.insertOne(user);
       res.send(result);
     });
-
+    app.delete("/users/admin/:id", verifyJWT, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await usersCollections.deleteOne(query);
+      res.send(result);
+    });
     app.get(
       "/categories-add-product",
       verifyJWT,
