@@ -152,34 +152,62 @@ async function run() {
       res.send(result);
     });
 
-    app.put("/phones/for-seller/:id", async (req, res) => {
-      const id = req.params.id;
-      const filter = { _id: ObjectId(id) };
-      const options = { upsert: true };
-      const updatedDoc = {
-        $set: {
-          isAd: "add",
-        },
-      };
-      const result = await phonesCollections.updateOne(
-        filter,
-        updatedDoc,
-        options
-      );
-      res.send(result);
-    });
-
-    app.post("/phones", verifyJWT, verifySeller, async (req, res) => {
-      const phone = req.body;
-      const result = await phonesCollections.insertOne(phone);
-      res.send(result);
-    });
-
     app.get("/phones/for-seller", verifyJWT, verifySeller, async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
       const phones = await phonesCollections.find(query).toArray();
       res.send(phones);
+    });
+
+    app.patch("/phones/for-sold/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          stokeStatus: "sold",
+        },
+      };
+      const result = await phonesCollections.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+    app.patch("/phones/for-unsold/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          stokeStatus: "unsold",
+        },
+      };
+      const result = await phonesCollections.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+
+    app.put(
+      "/phones/for-seller/:id",
+      verifyJWT,
+      verifySeller,
+      async (req, res) => {
+        const id = req.params.id;
+        const filter = { _id: ObjectId(id) };
+        const options = { upsert: true };
+        const updatedDoc = {
+          $set: {
+            isAd: "add",
+          },
+        };
+        const result = await phonesCollections.updateOne(
+          filter,
+          updatedDoc,
+          options
+        );
+        res.send(result);
+      }
+    );
+
+    app.post("/phones", verifyJWT, verifySeller, async (req, res) => {
+      const phone = req.body;
+      const result = await phonesCollections.insertOne(phone);
+      res.send(result);
     });
 
     app.get("/jwt", async (req, res) => {
