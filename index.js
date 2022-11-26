@@ -152,6 +152,23 @@ async function run() {
       res.send(result);
     });
 
+    app.put("/phones/for-seller/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: {
+          isAd: "add",
+        },
+      };
+      const result = await phonesCollections.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
+      res.send(result);
+    });
+
     app.post("/phones", verifyJWT, verifySeller, async (req, res) => {
       const phone = req.body;
       const result = await phonesCollections.insertOne(phone);
