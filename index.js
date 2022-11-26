@@ -158,7 +158,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/phones/for-seller", async (req, res) => {
+    app.get("/phones/for-seller", verifyJWT, verifySeller, async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
       const phones = await phonesCollections.find(query).toArray();
