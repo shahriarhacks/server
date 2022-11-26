@@ -158,6 +158,13 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/phones/for-seller", async (req, res) => {
+      const email = req.query.email;
+      const query = { email: email };
+      const phones = await phonesCollections.find(query).toArray();
+      res.send(phones);
+    });
+
     app.get("/jwt", async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
