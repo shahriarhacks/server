@@ -38,10 +38,12 @@ function verifyJWT(req, res, next) {
 const usersCollections = client.db("doyaShop").collection("users");
 const categoriesCollections = client.db("doyaShop").collection("categories");
 const phonesCollections = client.db("doyaShop").collection("phones");
+const bookingsCollections = client.db("doyaShop").collection("booking");
 
 async function run() {
   try {
     //Verify Admin
+    //Make Sure to use it after VerifyJWT
     const verifyAdmin = async (req, res, next) => {
       const decodedEmail = req.decoded.email;
       const query = { email: decodedEmail };
@@ -53,6 +55,8 @@ async function run() {
       next();
     };
 
+    //Verify Seller
+    //Make Sure to use it after VerifyJWT
     const verifySeller = async (req, res, next) => {
       const decodedEmail = req.decoded.email;
       const query = { email: decodedEmail };
@@ -112,6 +116,7 @@ async function run() {
           status: "verified",
         },
       };
+
       const result = await usersCollections.updateOne(
         filter,
         updatedDoc,
@@ -125,12 +130,14 @@ async function run() {
       const result = await usersCollections.insertOne(user);
       res.send(result);
     });
+
     app.delete("/users/admin/:id", verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await usersCollections.deleteOne(query);
       res.send(result);
     });
+
     app.get(
       "/categories-add-product",
       verifyJWT,
@@ -146,41 +153,71 @@ async function run() {
       }
     );
 
+    app.get("/categories", async (req, res) => {
+      const query = {};
+      const categories = await categoriesCollections.find(query).toArray();
+      res.send(categories);
+    });
+
     app.post("/categories", verifyJWT, verifyAdmin, async (req, res) => {
       const category = req.body;
       const result = await categoriesCollections.insertOne(category);
       res.send(result);
     });
 
-    app.get("/phones/for-seller", verifyJWT, verifySeller, async (req, res) => {
+    app.get("/phones/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { categoryId: id, stokeStatus: "unsold" };
+      const result = await phonesCollections.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get("/phones/ads", async (req, res) => {
+      const query = { stokeStatus: "unsold", isAd: "add" };
+      const unSoldPhones = await phonesCollections.find(query).toArray();
+      res.send(unSoldPhones);
+    });
+
+    app.get("/phones/for-seller", async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
       const phones = await phonesCollections.find(query).toArray();
       res.send(phones);
     });
 
-    app.patch("/phones/for-sold/:id", async (req, res) => {
-      const id = req.params.id;
-      const filter = { _id: ObjectId(id) };
-      const updatedDoc = {
-        $set: {
-          stokeStatus: "sold",
-        },
-      };
-      const result = await phonesCollections.updateOne(filter, updatedDoc);
-      res.send(result);
-    });
-    app.patch("/phones/for-unsold/:id", async (req, res) => {
-      const id = req.params.id;
-      const filter = { _id: ObjectId(id) };
-      const updatedDoc = {
-        $set: {
-          stokeStatus: "unsold",
-        },
-      };
-      const result = await phonesCollections.updateOne(filter, updatedDoc);
-      res.send(result);
-    });
+    app.patch(
+      "/phones/for-sold/:id",
+      verifyJWT,
+      verifySeller,
+      async (req, res) => {
+        const id = req.params.id;
+        const filter = { _id: ObjectId(id) };
+        const updatedDoc = {
+          $set: {
+            stokeStatus: "sold",
+          },
+        };
+        const result = await phonesCollections.updateOne(filter, updatedDoc);
+        res.send(result);
+      }
+    );
+
+    app.patch(
+      "/phones/for-unsold/:id",
+      verifyJWT,
+      verifySeller,
+      async (req, res) => {
+        const id = req.params.id;
+        const filter = { _id: ObjectId(id) };
+        const updatedDoc = {
+          $set: {
+            stokeStatus: "unsold",
+          },
+        };
+        const result = await phonesCollections.updateOne(filter, updatedDoc);
+        res.send(result);
+      }
+    );
 
     app.put(
       "/phones/for-seller/:id",
@@ -207,6 +244,19 @@ async function run() {
     app.post("/phones", verifyJWT, verifySeller, async (req, res) => {
       const phone = req.body;
       const result = await phonesCollections.insertOne(phone);
+      res.send(result);
+    });
+
+    app.get("/bookings", async (req, res) => {
+      const email = req.query.email;
+      const filter = { email };
+      const bookings = await bookingsCollections.find(filter).toArray();
+      res.send(bookings);
+    });
+
+    app.post("/bookings", verifyJWT, async (req, res) => {
+      const booking = req.body;
+      const result = await bookingsCollections.insertOne(booking);
       res.send(result);
     });
 
